@@ -1,13 +1,19 @@
 <template>
   <div class="m-5">
-    <div class="flex items-center justify-center mb-5">
-      <h1 class="font-bold text-4xl mr-4">Listado de Libros</h1>
+    <h1 class="font-bold text-4xl mr-4 m-5">Listado de Libros</h1>
+    <div class="flex items-center justify-between mb-5">
       <button
         @click="abrirModalCrearLibro"
-        class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md"
+        class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-48 h-12"
       >
         Crear Libro
       </button>
+      <input
+        v-model="busqueda"
+        type="text"
+        placeholder="Buscar por título..."
+        class="p-2 border rounded-md bg-gray-50 w-72 h-12"
+      />
     </div>
     <div class="mx-auto w-4/4 rounded-lg border border-gray-200 shadow-md m-5">
       <table
@@ -297,13 +303,7 @@ export default {
       libroSeleccionado: null,
       modificarLibroVisible: ref(false),
       crearLibroVisible: false,
-      nuevoLibro: {
-        titulo: "",
-        autor: "",
-        genero: "",
-        num_paginas: null,
-        sinopsis: "",
-      },
+      busqueda: "",
     };
   },
   methods: {
@@ -327,10 +327,7 @@ export default {
         });
 
         if (confirmacion.isConfirmed) {
-          await axios.delete(
-            `${env.API_ENDPOINT}/libros/${libroId}`,
-            config
-          );
+          await axios.delete(`${env.API_ENDPOINT}/libros/${libroId}`, config);
           await Swal.fire({
             icon: "success",
             title: "Exito",
@@ -483,6 +480,24 @@ export default {
       } catch (error) {
         console.error("Error al cargar libros", error);
       }
+    },
+    filtrarLibros() {
+      // Lógica para filtrar libros por título
+      if (this.busqueda.trim() !== "") {
+        const terminoBusqueda = this.busqueda.trim().toLowerCase();
+        this.libros = this.libros.filter((libro) =>
+          libro.titulo.toLowerCase().includes(terminoBusqueda)
+        );
+      } else {
+        // Si el término de búsqueda está vacío, cargamos todos los libros
+        this.cargarLibros();
+      }
+    },
+  },
+  watch: {
+    // Observador para el cambio en el término de búsqueda
+    busqueda: function () {
+      this.filtrarLibros();
     },
   },
   mounted() {
