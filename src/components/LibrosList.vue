@@ -5,7 +5,7 @@
       <!-- Botón de Crear Libro -->
       <button
         @click="abrirModalCrearLibro"
-        class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-48 h-12"
+        class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-48 h-10"
       >
         Crear Libro
       </button>
@@ -15,7 +15,7 @@
           <select
             v-model="campoFiltrado"
             @change="limpiarBusqueda"
-            class="p-2 border rounded-md mr-2"
+            class="p-2 border-2 border-slate-300 rounded-md mr-2 h-10 bg-gray-50"
           >
             <option value="titulo">Título</option>
             <option value="autor">Autor</option>
@@ -26,7 +26,8 @@
             v-model="busqueda"
             type="text"
             id="busqueda"
-            class="p-2 border rounded-md"
+            placeholder="Buscar"
+            class="p-2 border-2 border-slate-300 rounded-md bg-gray-50 h-10"
           />
         </div>
       </div>
@@ -144,7 +145,7 @@
                 type="text"
                 id="titulo"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50 "
               />
             </div>
 
@@ -157,7 +158,7 @@
                 type="text"
                 id="autor"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
           </div>
@@ -172,7 +173,7 @@
                 type="text"
                 id="genero"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
 
@@ -185,7 +186,7 @@
                 type="number"
                 id="num_paginas"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
           </div>
@@ -200,7 +201,7 @@
               id="sinopsis"
               rows="4"
               required
-              class="w-full p-2 border rounded-md bg-gray-50"
+              class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
             ></textarea>
           </div>
 
@@ -231,7 +232,7 @@
                 type="text"
                 id="titulo"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
 
@@ -244,7 +245,7 @@
                 type="text"
                 id="autor"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
           </div>
@@ -259,7 +260,7 @@
                 type="text"
                 id="genero"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
 
@@ -272,7 +273,7 @@
                 type="number"
                 id="num_paginas"
                 required
-                class="w-full p-2 border rounded-md bg-gray-50"
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
           </div>
@@ -287,7 +288,7 @@
               id="sinopsis"
               rows="4"
               required
-              class="w-full p-2 border rounded-md bg-gray-50"
+              class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
             ></textarea>
           </div>
 
