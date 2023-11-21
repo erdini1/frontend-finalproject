@@ -2,19 +2,36 @@
   <div class="m-5">
     <h1 class="font-bold text-4xl mr-4 m-5">Listado de Libros</h1>
     <div class="flex items-center justify-between mb-5">
+      <!-- Botón de Crear Libro -->
       <button
         @click="abrirModalCrearLibro"
         class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-48 h-12"
       >
         Crear Libro
       </button>
-      <input
-        v-model="busqueda"
-        type="text"
-        placeholder="Buscar por título..."
-        class="p-2 border rounded-md bg-gray-50 w-72 h-12"
-      />
+      <div class="flex items-center">
+        <div class="flex items-center">
+          <label for="busqueda" class="text-sm font-bold mr-2">Buscar:</label>
+          <select
+            v-model="campoFiltrado"
+            @change="limpiarBusqueda"
+            class="p-2 border rounded-md mr-2"
+          >
+            <option value="titulo">Título</option>
+            <option value="autor">Autor</option>
+            <option value="genero">Género</option>
+            <option value="estado">Estado</option>
+          </select>
+          <input
+            v-model="busqueda"
+            type="text"
+            id="busqueda"
+            class="p-2 border rounded-md"
+          />
+        </div>
+      </div>
     </div>
+
     <div class="mx-auto w-4/4 rounded-lg border border-gray-200 shadow-md m-5">
       <table
         class="w-full border-collapse bg-white text-left text-sm text-gray-500"
@@ -304,6 +321,7 @@ export default {
       modificarLibroVisible: ref(false),
       crearLibroVisible: false,
       busqueda: "",
+      campoFiltrado: "titulo",
     };
   },
   methods: {
@@ -482,16 +500,43 @@ export default {
       }
     },
     filtrarLibros() {
-      // Lógica para filtrar libros por título
+      // Lógica para filtrar libros según el campo seleccionado
       if (this.busqueda.trim() !== "") {
         const terminoBusqueda = this.busqueda.trim().toLowerCase();
-        this.libros = this.libros.filter((libro) =>
-          libro.titulo.toLowerCase().includes(terminoBusqueda)
-        );
+
+        // Filtrar por el campo seleccionado
+        switch (this.campoFiltrado) {
+          case "titulo":
+            this.libros = this.libros.filter((libro) =>
+              libro.titulo.toLowerCase().includes(terminoBusqueda)
+            );
+            break;
+          case "estado":
+            this.libros = this.libros.filter((libro) =>
+              libro.estado.toLowerCase().includes(terminoBusqueda)
+            );
+            break;
+          case "genero":
+            this.libros = this.libros.filter((libro) =>
+              libro.genero.toLowerCase().includes(terminoBusqueda)
+            );
+            break;
+          case "autor":
+            this.libros = this.libros.filter((libro) =>
+              libro.autor.toLowerCase().includes(terminoBusqueda)
+            );
+            break;
+          default:
+            break;
+        }
       } else {
         // Si el término de búsqueda está vacío, cargamos todos los libros
         this.cargarLibros();
       }
+    },
+    limpiarBusqueda() {
+      this.busqueda = "";
+      this.filtrarLibros();
     },
   },
   watch: {
