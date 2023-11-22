@@ -29,7 +29,7 @@
         <router-link
           to="/prestamos"
           class="text-sm font-semibold leading-6 text-gray-900"
-          >Prestamos</router-link
+          >Préstamos</router-link
         >
       </PopoverGroup>
       <div class="hidden lg:flex lg:flex-1 lg:justify-end">
@@ -52,15 +52,9 @@ const store = useStore();
 const router = useRouter();
 const isAuthenticated = () => store.getters.isAuthenticated;
 
-// store.watch(isAuthenticated, (newVal) => {
-//   isAuthenticated.value = newVal;
-// });
-
 const logout = () => {
-  // Limpiar el token y la autenticación
   store.commit("clearToken");
 
-  // Redirigir a la página de inicio de sesión
   router.push("/login");
 };
 </script>

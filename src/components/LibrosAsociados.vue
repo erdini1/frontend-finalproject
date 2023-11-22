@@ -6,8 +6,8 @@
     >
       <thead class="bg-gray-100">
         <tr>
-          <th scope="col" class="px-4 py-2 font-medium text-gray-900">ID</th>
-          <th scope="col" class="px-4 py-2 font-medium text-gray-900">
+          <th scope="col" class="px-6 py-4 font-medium text-gray-900">ID</th>
+          <th scope="col" class="px-4 py-4 font-medium text-gray-900">
             Título
           </th>
           <th scope="col" class="px-4 py-2 font-medium text-gray-900">Autor</th>
@@ -15,9 +15,9 @@
       </thead>
       <tbody class="divide-y divide-gray-300 border-t border-gray-100">
         <tr v-for="libro in libros" :key="libro.id" class="hover:bg-gray-50">
-          <td class="px-4 py-2">{{ libro.id }}</td>
-          <td class="px-4 py-2">{{ libro.titulo }}</td>
-          <td class="px-4 py-2">{{ libro.autor }}</td>
+          <td class="px-6 py-4 w-16">{{ libro.id }}</td>
+          <td class="px-4 py-4 w-48">{{ libro.titulo }}</td>
+          <td class="px-4 py-4 w-40">{{ libro.autor }}</td>
         </tr>
       </tbody>
     </table>

@@ -23,18 +23,39 @@
       >
         <thead class="bg-gray-100">
           <tr>
-            <!-- Ajusta las columnas según los datos de tus préstamos -->
-            <th scope="col" class="px-6 py-4 font-medium text-gray-900">ID</th>
-            <th scope="col" class="px-4 py-4 font-medium text-gray-900">
+            <th
+              scope="col"
+              class="px-6 py-4 font-medium text-gray-900"
+              style="width: 50px"
+            >
+              ID
+            </th>
+            <th
+              scope="col"
+              class="px-4 py-4 font-medium text-gray-900"
+              style="width: 150px"
+            >
               Fecha Préstamo
             </th>
-            <th scope="col" class="px-4 py-4 font-medium text-gray-900">
+            <th
+              scope="col"
+              class="px-4 py-4 font-medium text-gray-900"
+              style="width: 150px"
+            >
               Fecha Devolución
             </th>
-            <th scope="col" class="px-10 py-4 font-medium text-gray-900">
+            <th
+              scope="col"
+              class="px-10 py-4 font-medium text-gray-900"
+              style="width: 300px"
+            >
               Libros
             </th>
-            <th scope="col" class="px-6 py-4 font-medium text-gray-900">
+            <th
+              scope="col"
+              class="px-6 py-4 font-medium text-gray-900"
+              style="width: 100px"
+            >
               Acciones
             </th>
           </tr>
