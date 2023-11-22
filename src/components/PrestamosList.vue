@@ -48,14 +48,13 @@
             <!-- Ajusta las celdas según los datos de tus préstamos -->
             <td class="px-6 py-4">{{ prestamo.id }}</td>
             <td class="px-4 py-4">{{ prestamo.fprestamo }}</td>
-            <td class="px-4 py-4">{{ prestamo.fprestamo }}</td>
+            <td class="px-4 py-4">{{ prestamo.fdevolucion }}</td>
             <td class="px-8 py-4">
               <LibrosAsociados :libros="prestamo.libros" />
             </td>
             <td class="px-6 py-4">
               <!-- Acciones para el préstamo -->
               <div class="flex justify-start gap-4">
-                <!-- Mostrar el botón de eliminar solo si el libro está disponible -->
                 <!-- @click="/* eliminarLibro(libro.id) */" -->
                 <a
                   x-data="{ tooltip: 'Eliminar' }"
@@ -103,6 +102,7 @@
                   </svg>
                 </a>
                 <a
+                  v-if="prestamo.fdevolucion == null"
                   x-data="{ tooltip: 'Finalizar' }"
                   href="#"
                   class="cursor-pointer"
@@ -128,61 +128,38 @@
         </tbody>
       </table>
     </div>
+
+    <!-- MODAL -->
     <el-dialog v-model="crearPrestamoVisible" title="Crear Nuevo Préstamo">
       <form @submit.prevent="crearPrestamo">
-        <div class="grid grid-cols-2 gap-4">
+        <div>
           <div>
             <div class="mb-4">
               <label for="fechaPrestamo" class="block text-sm font-bold mb-1"
                 >Fecha Préstamo:</label
               >
-              <input
+              <el-date-picker
                 v-model="nuevoPrestamo.fprestamo"
                 type="date"
-                id="fechaPrestamo"
-                required
-                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
-              />
-            </div>
-
-            <div class="mb-4">
-              <label for="fechaDevolucion" class="block text-sm font-bold mb-1"
-                >Fecha Devolución:</label
-              >
-              <input
-                v-model="nuevoPrestamo.fdevolucion"
-                type="date"
+                placeholder="Seleccione una Fecha"
+                :size="large"
+                format="DD/MM/YYYY"
+                :value-format="'DD-MM-YYYY'"
                 id="fechaDevolucion"
-                required
-                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
+                :required="true"
+                class="w-full border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
           </div>
 
-          <div class="col-span-2 mb-4">
-            <label
-              for="librosSeleccionados"
-              class="block text-sm font-bold mb-1"
-              >Libros:</label
-            >
-            <select
-              v-model="nuevoPrestamo.librosSeleccionados"
-              multiple
-              id="librosSeleccionados"
-              required
-              class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
-            >
-              <!-- Aquí debes cargar dinámicamente las opciones de los libros disponibles -->
-              <option
-                v-for="libro in librosDisponibles"
-                :key="libro.id"
-                :value="libro.id"
-              >
-                {{ libro.titulo }}
-              </option>
-            </select>
-          </div>
-
+          <el-transfer
+            v-model="nuevoPrestamo.libros"
+            filterable
+            :filter-method="filterMethod"
+            filter-placeholder="Titulo Libro"
+            :data="librosDisponibles"
+            :titles="['Disponibles', 'Seleccionados']"
+          />
           <div class="col-span-2">
             <button
               type="submit"
@@ -194,6 +171,7 @@
         </div>
       </form>
     </el-dialog>
+    <!--  -->
   </div>
 </template>
 
@@ -211,7 +189,7 @@ export default {
       nuevoPrestamo: {
         fprestamo: "",
         fdevolucion: "",
-        librosSeleccionados: [],
+        libros: [],
       },
       crearPrestamoVisible: false,
     };
@@ -245,33 +223,42 @@ export default {
       }
       try {
         const response = await axios.get(
-          `${env.API_ENDPOINT}/libros/disponibles`, // Ajusta la ruta según tu API
+          `${env.API_ENDPOINT}/libros/disponibles`,
           config
         );
-        this.librosDisponibles = response.data;
+        this.librosDisponibles = response.data.map((libro) => ({
+          key: libro.id, // o la propiedad que sirva como identificador único
+          label: libro.titulo,
+        }));
       } catch (error) {
         console.error("Error al cargar libros disponibles", error);
       }
     },
+
     async crearPrestamo() {
+      const librosFormateados = this.nuevoPrestamo.libros.map((id) => ({ id }));
+      this.nuevoPrestamo.libros = librosFormateados;
       const config = configurarTokenAutorizacion();
       if (!config) {
         return;
       }
       try {
-        // Ajusta la ruta y los datos según tu API y modelo de datos
         const response = await axios.post(
           `${env.API_ENDPOINT}/prestamos`,
           this.nuevoPrestamo,
           config
         );
 
-        // Luego de crear el préstamo, cierra el modal y vuelve a cargar los préstamos
         this.crearPrestamoVisible = false;
         this.cargarPrestamos();
       } catch (error) {
         console.error("Error al crear préstamo", error);
       }
+    },
+    filterMethod(query, option) {
+      return (
+        option.label && option.label.toLowerCase().includes(query.toLowerCase())
+      );
     },
   },
   mounted() {
