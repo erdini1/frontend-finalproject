@@ -307,7 +307,6 @@
 </template>
 
 <script>
-//Consultar como poner los libros ordenados de menor a mayor con el id, agregar un buscador y ver de poner algunos tags para buscar o algo asi
 import axios from "axios";
 import Swal from "sweetalert2";
 import { configurarTokenAutorizacion } from "../utils/token.js";
@@ -492,7 +491,7 @@ export default {
       }
       try {
         const response = await axios.get(
-          `${env.API_ENDPOINT}/libros`, // TODO : modificar
+          `${env.API_ENDPOINT}/libros`,
           config
         );
         this.libros = response.data;
