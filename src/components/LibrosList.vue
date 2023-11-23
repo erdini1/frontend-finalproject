@@ -145,7 +145,7 @@
                 type="text"
                 id="titulo"
                 required
-                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50 "
+                class="w-full p-2 border-2 border-slate-300 rounded-md bg-gray-50"
               />
             </div>
 
@@ -490,10 +490,7 @@ export default {
         return;
       }
       try {
-        const response = await axios.get(
-          `${env.API_ENDPOINT}/libros`,
-          config
-        );
+        const response = await axios.get(`${env.API_ENDPOINT}/libros`, config);
         this.libros = response.data;
       } catch (error) {
         console.error("Error al cargar libros", error);

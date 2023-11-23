@@ -3,7 +3,6 @@
     <h1 class="font-bold text-4xl mr-4 m-5">Listado de Préstamos</h1>
     <!-- Agrega la sección para filtrar y buscar, similar a LibrosList -->
     <div class="flex items-center justify-between mb-5">
-      <!-- Botón de Crear Préstamo -->
       <button
         @click="abrirModalCrearPrestamo"
         class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-48 h-10"
@@ -16,7 +15,6 @@
       </div>
     </div>
 
-    <!-- Tabla de Préstamos -->
     <div class="mx-auto w-4/4 rounded-lg border border-gray-200 shadow-md m-5">
       <table
         class="w-full border-collapse bg-white text-left text-sm text-gray-500"
@@ -66,7 +64,6 @@
             :key="prestamo.id"
             class="hover:bg-gray-50"
           >
-            <!-- Ajusta las celdas según los datos de tus préstamos -->
             <td class="px-6 py-4">{{ prestamo.id }}</td>
             <td class="px-4 py-4">{{ prestamo.fprestamo }}</td>
             <td class="px-4 py-4">{{ prestamo.fdevolucion }}</td>
@@ -74,10 +71,9 @@
               <LibrosAsociados :libros="prestamo.libros" />
             </td>
             <td class="px-6 py-4">
-              <!-- Acciones para el préstamo -->
               <div class="flex justify-start gap-4">
-                <!-- @click="/* eliminarLibro(libro.id) */" -->
                 <a
+                  @click="eliminarPrestamo(prestamo.id)"
                   x-data="{ tooltip: 'Eliminar' }"
                   href="#"
                   class="cursor-pointer"
@@ -98,10 +94,8 @@
                     />
                   </svg>
                 </a>
-                <!-- Botón de editar con clase condicional -->
-                <!-- @click="/* abrirModalModificarLibro(libro.id) modificar */ "  -->
-                <!-- :class="/* { 'ml-4': libro.estado === 'Prestado' } */" -->
                 <a
+                  @click="abrirModalEditarPrestamo(prestamo.id)"
                   x-data="{ tooltip: 'Editar' }"
                   href="#"
                   class="cursor-pointer"
@@ -150,7 +144,7 @@
       </table>
     </div>
 
-    <!-- MODAL -->
+    <!-- MODAL CREAR-->
     <el-dialog v-model="crearPrestamoVisible" title="Crear Nuevo Préstamo">
       <form @submit.prevent="crearPrestamo">
         <div>
@@ -179,6 +173,7 @@
             :filter-method="filterMethod"
             filter-placeholder="Titulo Libro"
             :data="librosDisponibles"
+            :right-default-checked="[1]"
             :titles="['Disponibles', 'Seleccionados']"
           />
           <div class="col-span-2">
@@ -187,6 +182,46 @@
               class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
             >
               Crear Préstamo
+            </button>
+          </div>
+        </div>
+      </form>
+    </el-dialog>
+
+    <!-- MODAL MODIFICAR -->
+    <el-dialog v-model="editarPrestamoVisible" title="Editar Préstamo">
+      <form @submit.prevent="guardarModificacionPrestamo">
+        <div>
+          <div class="mb-4">
+            <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
+              Fecha Préstamo:
+            </label>
+            <el-date-picker
+              v-model="prestamoSeleccionado.fprestamo"
+              type="date"
+              placeholder="Seleccione una Fecha"
+              :size="large"
+              format="DD/MM/YYYY"
+              id="fechaDevolucion"
+              class="w-full border-2 border-slate-300 rounded-md bg-gray-50"
+            />
+          </div>
+
+          <el-transfer
+            v-model="prestamoSeleccionado.libros"
+            filterable
+            :filter-method="filterMethod"
+            filter-placeholder="Titulo Libro"
+            :data="librosDisponibles"
+            :titles="['Disponibles', 'Seleccionados']"
+          />
+
+          <div class="col-span-2">
+            <button
+              type="submit"
+              class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
+            >
+              Guardar Cambios
             </button>
           </div>
         </div>
@@ -201,18 +236,26 @@ import axios from "axios";
 import env from "../../env";
 import { configurarTokenAutorizacion } from "../utils/token";
 import LibrosAsociados from "./LibrosAsociados.vue";
+import Swal from "sweetalert2";
 
 export default {
   data() {
     return {
       prestamos: [],
-      librosDisponibles: [], // Debes cargar esto desde tu API
+      librosDisponibles: [],
       nuevoPrestamo: {
         fprestamo: "",
         fdevolucion: "",
         libros: [],
       },
       crearPrestamoVisible: false,
+      prestamoSeleccionado: {
+        id: null,
+        fprestamo: "",
+        fdevolucion: "",
+        libros: [],
+      },
+      editarPrestamoVisible: false,
     };
   },
   components: {
@@ -255,7 +298,6 @@ export default {
         console.error("Error al cargar libros disponibles", error);
       }
     },
-
     async crearPrestamo() {
       const librosFormateados = this.nuevoPrestamo.libros.map((id) => ({ id }));
       this.nuevoPrestamo.libros = librosFormateados;
@@ -280,6 +322,98 @@ export default {
       return (
         option.label && option.label.toLowerCase().includes(query.toLowerCase())
       );
+    },
+    async eliminarPrestamo(prestamoId) {
+      try {
+        const config = configurarTokenAutorizacion();
+
+        if (!config) {
+          return;
+        }
+
+        const confirmacion = await Swal.fire({
+          title: "¿Estás seguro?",
+          text: "Esta acción no se puede deshacer.",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#3085d6",
+          cancelButtonColor: "#d33",
+          confirmButtonText: "Sí, eliminarlo",
+          cancelButtonText: "Cancelar",
+        });
+
+        if (confirmacion.isConfirmed) {
+          await axios.delete(
+            `${env.API_ENDPOINT}/prestamos/${prestamoId}`,
+            config
+          );
+          await Swal.fire({
+            icon: "success",
+            title: "Éxito",
+            text: "Préstamo eliminado correctamente",
+          });
+
+          const index = this.prestamos.findIndex(
+            (prestamo) => prestamo.id === prestamoId
+          );
+
+          // Elimina el préstamo del array existente
+          if (index !== -1) {
+            this.prestamos.splice(index, 1);
+          }
+        }
+      } catch (error) {
+        console.error("Error al eliminar préstamo", error);
+      }
+    },
+    abrirModalEditarPrestamo(prestamoId) {
+      const prestamo = this.prestamos.find((p) => p.id === prestamoId);
+
+      if (prestamo) {
+        this.prestamoSeleccionado = { ...prestamo };
+        if (!this.prestamoSeleccionado.libros) {
+          this.prestamoSeleccionado.libros = [];
+        }
+        console.log("Libros seleccionados:", this.prestamoSeleccionado.libros);
+        this.editarPrestamoVisible = true;
+      }
+    },
+    async guardarModificacionPrestamo() {
+      try {
+        const config = configurarTokenAutorizacion();
+
+        if (!config) {
+          return;
+        }
+        const response = await axios.put(
+          `${env.API_ENDPOINT}/prestamos/${this.prestamoSeleccionado.id}`,
+          this.prestamoSeleccionado,
+          config
+        );
+        console.log("Préstamo modificado con éxito");
+
+        const index = this.prestamos.findIndex(
+          (prestamo) => prestamo.id === this.prestamoSeleccionado.id
+        );
+
+        if (index !== -1) {
+          Object.assign(this.prestamos[index], response.data);
+        }
+        this.editarPrestamoVisible = false;
+        this.cargarPrestamos();
+        await Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Préstamo modificado correctamente",
+        });
+      } catch (error) {
+        console.error("Error al modificar préstamo", error);
+        await Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un error al modificar el préstamo",
+        });
+      }
     },
   },
   mounted() {
