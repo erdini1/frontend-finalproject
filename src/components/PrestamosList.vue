@@ -189,9 +189,10 @@
     </el-dialog>
 
     <!-- MODAL MODIFICAR -->
-    <el-dialog v-model="editarPrestamoVisible" title="Editar Préstamo">
+    <!-- <el-dialog v-model="editarPrestamoVisible" title="Editar Préstamo">
       <form @submit.prevent="guardarModificacionPrestamo">
         <div>
+
           <div class="mb-4">
             <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
               Fecha Préstamo:
@@ -207,26 +208,118 @@
             />
           </div>
 
-          <el-transfer
-            v-model="prestamoSeleccionado.libros"
-            filterable
-            :filter-method="filterMethod"
-            filter-placeholder="Titulo Libro"
-            :data="librosDisponibles"
-            :titles="['Disponibles', 'Seleccionados']"
-          />
-
-          <div class="col-span-2">
-            <button
-              type="submit"
-              class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
+     
+          <div class="mb-4">
+            <label class="block text-sm font-bold mb-1"
+              >Libros Seleccionados:</label
             >
-              Guardar Cambios
-            </button>
+            <ul
+              class="overflow-auto max-h-40 border border-gray-300 rounded-md p-2"
+            >
+              <li v-for="libro in librosDisponibles" :key="libro.id">
+                <label>
+                  <input
+                    type="checkbox"
+                    v-model="prestamoSeleccionado.libros"
+                    :value="libro.id"
+                  />
+                  {{ libro.titulo }}
+                </label>
+              </li>
+            </ul>
           </div>
+        </div>
+
+        <div class="col-span-2">
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    </el-dialog> -->
+
+    <el-dialog
+      v-model="editarPrestamoVisible"
+      title="Editar Préstamo"
+      :z-index="1001"
+    >
+      <form @submit.prevent="guardarModificacionPrestamo">
+        <!-- Selector de fecha -->
+        <div class="mb-4">
+          <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
+            Fecha Préstamo:
+          </label>
+          <!-- <Calendar
+            v-model="prestamoSeleccionado.fprestamo"
+            :showIcon="false"
+            :dateFormat="dateFormatOptions"
+            class="z-50 border rounded bg-white p-1 text-sm border-none"
+          /> -->
+          <!-- <input type="date" name="" id=""> -->
+        </div>
+
+        <!-- Select para agregar libros -->
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-3">Agregar Libro:</label>
+          <el-select
+            v-model="selectedBook"
+            placeholder="Buscar libro"
+            filterable
+          >
+            <el-option
+              v-for="libro in librosDisponibles"
+              :key="libro.id"
+              :label="libro.titulo"
+              :value="libro"
+            />
+          </el-select>
+          <el-button @click="agregarLibroSeleccionado">Agregar</el-button>
+        </div>
+
+        <!-- Listado de Libros Selecionados -->
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-1"
+            >Libros Seleccionados:</label
+          >
+          <ul class="flex flex-wrap gap-2 justify-center text-center">
+            <li
+              v-for="libro in librosSeleccionados"
+              :key="libro.id"
+              class="border border-gray-300 rounded-md p-2 flex items-center"
+            >
+              <span class="mr-2">{{ libro.titulo }}</span>
+              <button @click="eliminarLibroSeleccionado(libro)">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  class="w-4 h-4"
+                >
+                  <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Botón para guardar cambios -->
+        <div class="col-span-2">
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
+          >
+            Guardar Cambios
+          </button>
         </div>
       </form>
     </el-dialog>
+
     <!--  -->
   </div>
 </template>
@@ -237,6 +330,7 @@ import env from "../../env";
 import { configurarTokenAutorizacion } from "../utils/token";
 import LibrosAsociados from "./LibrosAsociados.vue";
 import Swal from "sweetalert2";
+import Calendar from "primevue/calendar";
 
 export default {
   data() {
@@ -255,13 +349,71 @@ export default {
         fdevolucion: "",
         libros: [],
       },
+      selectedBook: null,
+      librosSeleccionados: [],
       editarPrestamoVisible: false,
+      selectedBooksFilter: "",
+      availableBooksFilter: "",
+      dateFormatOptions: {
+        dateFormat: "dd/mm/yy", // Puedes ajustar el formato según tus preferencias
+        showOtherMonths: true,
+      },
     };
+  },
+  computed: {
+    selectedBooksFiltered() {
+      return this.prestamoSeleccionado.libros.filter((book) =>
+        book.titulo
+          .toLowerCase()
+          .includes(this.selectedBooksFilter.toLowerCase())
+      );
+    },
+    availableBooksFiltered() {
+      return this.librosDisponibles.filter((book) =>
+        book.label
+          .toLowerCase()
+          .includes(this.availableBooksFilter.toLowerCase())
+      );
+    },
   },
   components: {
     LibrosAsociados,
+    Calendar,
   },
   methods: {
+    agregarLibroSeleccionado() {
+      if (this.selectedBook) {
+        // Verificar si el libro ya está en la lista de libros seleccionados
+        const libroExistente = this.librosSeleccionados.find(
+          (libro) => libro.id === this.selectedBook.id
+        );
+
+        if (!libroExistente) {
+          // Agregar el libro a la lista de libros seleccionados
+          this.librosSeleccionados.push(this.selectedBook);
+
+          // Eliminar el libro de la lista de libros disponibles
+          this.librosDisponibles = this.librosDisponibles.filter(
+            (libro) => libro.id !== this.selectedBook.id
+          );
+
+          // Reiniciar el valor de selectedBook
+          this.selectedBook = null;
+        } else {
+          // El libro ya está en la lista, mostrar algún mensaje o manejar según sea necesario
+          console.log("El libro ya está en la lista");
+        }
+      }
+    },
+    eliminarLibroSeleccionado(libro) {
+      // Agregar el libro nuevamente a la lista de libros disponibles
+      this.librosDisponibles.push(libro);
+
+      // Eliminar el libro de la lista de libros seleccionados
+      this.librosSeleccionados = this.librosSeleccionados.filter(
+        (libroSeleccionado) => libroSeleccionado.id !== libro.id
+      );
+    },
     abrirModalCrearPrestamo() {
       this.crearPrestamoVisible = true;
     },
@@ -291,8 +443,8 @@ export default {
           config
         );
         this.librosDisponibles = response.data.map((libro) => ({
-          key: libro.id, // o la propiedad que sirva como identificador único
-          label: libro.titulo,
+          id: libro.id,
+          titulo: libro.titulo,
         }));
       } catch (error) {
         console.error("Error al cargar libros disponibles", error);
@@ -371,10 +523,24 @@ export default {
 
       if (prestamo) {
         this.prestamoSeleccionado = { ...prestamo };
-        if (!this.prestamoSeleccionado.libros) {
-          this.prestamoSeleccionado.libros = [];
-        }
-        console.log("Libros seleccionados:", this.prestamoSeleccionado.libros);
+
+        // Cargar libros disponibles
+        this.cargarLibrosDisponibles();
+
+        // Obtener los libros que ya tenía el préstamo
+        const librosPrestamo = prestamo.libros;
+
+        // Inicializar librosSeleccionados con los libros del préstamo
+        this.librosSeleccionados = [...librosPrestamo];
+
+        // Filtrar los libros disponibles para excluir los que ya tenía el préstamo
+        this.librosDisponibles = this.librosDisponibles.filter(
+          (libro) =>
+            !librosPrestamo.some(
+              (libroPrestamo) => libroPrestamo.id === libro.id
+            )
+        );
+
         this.editarPrestamoVisible = true;
       }
     },
@@ -385,12 +551,18 @@ export default {
         if (!config) {
           return;
         }
+
+        const librosFormateados = this.prestamoSeleccionado.libros.map(
+          (libro) => ({
+            id: libro.id,
+          })
+        );
+
         const response = await axios.put(
           `${env.API_ENDPOINT}/prestamos/${this.prestamoSeleccionado.id}`,
-          this.prestamoSeleccionado,
+          { ...this.prestamoSeleccionado, libros: librosFormateados },
           config
         );
-        console.log("Préstamo modificado con éxito");
 
         const index = this.prestamos.findIndex(
           (prestamo) => prestamo.id === this.prestamoSeleccionado.id
