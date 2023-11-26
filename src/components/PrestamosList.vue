@@ -189,58 +189,6 @@
     </el-dialog>
 
     <!-- MODAL MODIFICAR -->
-    <!-- <el-dialog v-model="editarPrestamoVisible" title="Editar Préstamo">
-      <form @submit.prevent="guardarModificacionPrestamo">
-        <div>
-
-          <div class="mb-4">
-            <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
-              Fecha Préstamo:
-            </label>
-            <el-date-picker
-              v-model="prestamoSeleccionado.fprestamo"
-              type="date"
-              placeholder="Seleccione una Fecha"
-              :size="large"
-              format="DD/MM/YYYY"
-              id="fechaDevolucion"
-              class="w-full border-2 border-slate-300 rounded-md bg-gray-50"
-            />
-          </div>
-
-     
-          <div class="mb-4">
-            <label class="block text-sm font-bold mb-1"
-              >Libros Seleccionados:</label
-            >
-            <ul
-              class="overflow-auto max-h-40 border border-gray-300 rounded-md p-2"
-            >
-              <li v-for="libro in librosDisponibles" :key="libro.id">
-                <label>
-                  <input
-                    type="checkbox"
-                    v-model="prestamoSeleccionado.libros"
-                    :value="libro.id"
-                  />
-                  {{ libro.titulo }}
-                </label>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="col-span-2">
-          <button
-            type="submit"
-            class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
-          >
-            Guardar Cambios
-          </button>
-        </div>
-      </form>
-    </el-dialog> -->
-
     <el-dialog
       v-model="editarPrestamoVisible"
       title="Editar Préstamo"
@@ -252,13 +200,12 @@
           <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
             Fecha Préstamo:
           </label>
-          <!-- <Calendar
-            v-model="prestamoSeleccionado.fprestamo"
-            :showIcon="false"
-            :dateFormat="dateFormatOptions"
-            class="z-50 border rounded bg-white p-1 text-sm border-none"
-          /> -->
-          <!-- <input type="date" name="" id=""> -->
+          <input
+            v-model="formattedDate"
+            class="border-2 border-gray-300 rounded-md p-2 w-72 focus:outline-none focus:border-blue-500"
+            type="date"
+            placeholder="Seleccione una Fecha"
+          />
         </div>
 
         <!-- Select para agregar libros -->
@@ -330,7 +277,6 @@ import env from "../../env";
 import { configurarTokenAutorizacion } from "../utils/token";
 import LibrosAsociados from "./LibrosAsociados.vue";
 import Swal from "sweetalert2";
-import Calendar from "primevue/calendar";
 
 export default {
   data() {
@@ -354,10 +300,7 @@ export default {
       editarPrestamoVisible: false,
       selectedBooksFilter: "",
       availableBooksFilter: "",
-      dateFormatOptions: {
-        dateFormat: "dd/mm/yy", // Puedes ajustar el formato según tus preferencias
-        showOtherMonths: true,
-      },
+      formattedDate: "",
     };
   },
   computed: {
@@ -378,7 +321,6 @@ export default {
   },
   components: {
     LibrosAsociados,
-    Calendar,
   },
   methods: {
     agregarLibroSeleccionado() {
@@ -524,16 +466,12 @@ export default {
       if (prestamo) {
         this.prestamoSeleccionado = { ...prestamo };
 
-        // Cargar libros disponibles
         this.cargarLibrosDisponibles();
 
-        // Obtener los libros que ya tenía el préstamo
         const librosPrestamo = prestamo.libros;
 
-        // Inicializar librosSeleccionados con los libros del préstamo
         this.librosSeleccionados = [...librosPrestamo];
 
-        // Filtrar los libros disponibles para excluir los que ya tenía el préstamo
         this.librosDisponibles = this.librosDisponibles.filter(
           (libro) =>
             !librosPrestamo.some(
@@ -542,6 +480,12 @@ export default {
         );
 
         this.editarPrestamoVisible = true;
+      }
+
+      if (this.prestamoSeleccionado.fprestamo) {
+        const [day, month, year] =
+          this.prestamoSeleccionado.fprestamo.split("-");
+        this.formattedDate = `${year}-${month}-${day}`;
       }
     },
     async guardarModificacionPrestamo() {
