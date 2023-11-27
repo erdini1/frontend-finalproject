@@ -220,12 +220,13 @@
               v-for="libro in librosDisponibles"
               :key="libro.id"
               :label="libro.titulo"
-              :value="libro"
+              :value="libro.id"
             />
           </el-select>
           <el-button @click="agregarLibroSeleccionado">Agregar</el-button>
         </div>
-
+        <!-- Revisar que cuando modifico un prestamo se guarda con los valores que tenia antes -->
+        <!-- Modificar el editar prestamo para que pueda seleccionar libros que estan en el prestamo actualmente -->
         <!-- Listado de Libros Selecionados -->
         <div class="mb-4">
           <label class="block text-sm font-bold mb-1"
@@ -304,13 +305,13 @@ export default {
     };
   },
   computed: {
-    selectedBooksFiltered() {
-      return this.prestamoSeleccionado.libros.filter((book) =>
-        book.titulo
-          .toLowerCase()
-          .includes(this.selectedBooksFilter.toLowerCase())
-      );
-    },
+    // selectedBooksFiltered() {
+    //   return this.prestamoSeleccionado.libros.filter((book) =>
+    //     book.titulo
+    //       .toLowerCase()
+    //       .includes(this.selectedBooksFilter.toLowerCase())
+    //   );
+    // },
     availableBooksFiltered() {
       return this.librosDisponibles.filter((book) =>
         book.label
@@ -325,36 +326,27 @@ export default {
   methods: {
     agregarLibroSeleccionado() {
       if (this.selectedBook) {
-        // Verificar si el libro ya está en la lista de libros seleccionados
-        const libroExistente = this.librosSeleccionados.find(
-          (libro) => libro.id === this.selectedBook.id
+        console.log(this.selectedBook);
+        // Encuentra el libro completo en base al id
+        const libroSeleccionado = this.librosDisponibles.find(
+          (libro) => libro.id === this.selectedBook
         );
-
-        if (!libroExistente) {
-          // Agregar el libro a la lista de libros seleccionados
-          this.librosSeleccionados.push(this.selectedBook);
-
-          // Eliminar el libro de la lista de libros disponibles
-          this.librosDisponibles = this.librosDisponibles.filter(
-            (libro) => libro.id !== this.selectedBook.id
-          );
-
-          // Reiniciar el valor de selectedBook
-          this.selectedBook = null;
-        } else {
-          // El libro ya está en la lista, mostrar algún mensaje o manejar según sea necesario
-          console.log("El libro ya está en la lista");
-        }
+        this.librosSeleccionados.push(libroSeleccionado);
+        this.librosDisponibles = this.librosDisponibles.filter(
+          (libro) => libro.id !== this.selectedBook
+        );
+        this.selectedBook = null;
       }
     },
     eliminarLibroSeleccionado(libro) {
-      // Agregar el libro nuevamente a la lista de libros disponibles
-      this.librosDisponibles.push(libro);
-
       // Eliminar el libro de la lista de libros seleccionados
       this.librosSeleccionados = this.librosSeleccionados.filter(
         (libroSeleccionado) => libroSeleccionado.id !== libro.id
       );
+
+      // Agregar el libro nuevamente a la lista de libros disponibles
+      this.librosDisponibles.push(libro);
+      this.selectedBook = null;
     },
     abrirModalCrearPrestamo() {
       this.crearPrestamoVisible = true;
@@ -496,15 +488,16 @@ export default {
           return;
         }
 
-        const librosFormateados = this.prestamoSeleccionado.libros.map(
+        this.prestamoSeleccionado.libros = this.prestamoSeleccionado.libros.map(
           (libro) => ({
             id: libro.id,
           })
         );
 
+        console.log(this.prestamoSeleccionado);
         const response = await axios.put(
           `${env.API_ENDPOINT}/prestamos/${this.prestamoSeleccionado.id}`,
-          { ...this.prestamoSeleccionado, libros: librosFormateados },
+          this.prestamoSeleccionado,
           config
         );
 
