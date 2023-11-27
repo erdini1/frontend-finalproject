@@ -304,22 +304,6 @@ export default {
       formattedDate: "",
     };
   },
-  computed: {
-    // selectedBooksFiltered() {
-    //   return this.prestamoSeleccionado.libros.filter((book) =>
-    //     book.titulo
-    //       .toLowerCase()
-    //       .includes(this.selectedBooksFilter.toLowerCase())
-    //   );
-    // },
-    availableBooksFiltered() {
-      return this.librosDisponibles.filter((book) =>
-        book.label
-          .toLowerCase()
-          .includes(this.availableBooksFilter.toLowerCase())
-      );
-    },
-  },
   components: {
     LibrosAsociados,
   },
@@ -327,7 +311,6 @@ export default {
     agregarLibroSeleccionado() {
       if (this.selectedBook) {
         console.log(this.selectedBook);
-        // Encuentra el libro completo en base al id
         const libroSeleccionado = this.librosDisponibles.find(
           (libro) => libro.id === this.selectedBook
         );
@@ -339,12 +322,10 @@ export default {
       }
     },
     eliminarLibroSeleccionado(libro) {
-      // Eliminar el libro de la lista de libros seleccionados
       this.librosSeleccionados = this.librosSeleccionados.filter(
         (libroSeleccionado) => libroSeleccionado.id !== libro.id
       );
 
-      // Agregar el libro nuevamente a la lista de libros disponibles
       this.librosDisponibles.push(libro);
       this.selectedBook = null;
     },
@@ -488,13 +469,16 @@ export default {
           return;
         }
 
-        this.prestamoSeleccionado.libros = this.prestamoSeleccionado.libros.map(
-          (libro) => ({
-            id: libro.id,
-          })
-        );
+        const librosFormateados = this.librosSeleccionados.map((libro) => ({
+          id: libro.id,
+        }));
 
-        console.log(this.prestamoSeleccionado);
+        this.prestamoSeleccionado.libros = librosFormateados;
+        this.prestamoSeleccionado.fprestamo = this.formattedDate
+          .split("-")
+          .reverse()
+          .join("-");
+
         const response = await axios.put(
           `${env.API_ENDPOINT}/prestamos/${this.prestamoSeleccionado.id}`,
           this.prestamoSeleccionado,
@@ -504,12 +488,13 @@ export default {
         const index = this.prestamos.findIndex(
           (prestamo) => prestamo.id === this.prestamoSeleccionado.id
         );
-
         if (index !== -1) {
-          Object.assign(this.prestamos[index], response.data);
+          this.prestamos.splice(index, 1, response.data);
         }
+
         this.editarPrestamoVisible = false;
         this.cargarPrestamos();
+
         await Swal.fire({
           icon: "success",
           title: "Éxito",
@@ -517,6 +502,7 @@ export default {
         });
       } catch (error) {
         console.error("Error al modificar préstamo", error);
+
         await Swal.fire({
           icon: "error",
           title: "Error",
