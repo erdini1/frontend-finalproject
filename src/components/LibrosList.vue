@@ -132,7 +132,7 @@
 
     <!--  -->
     <!-- Modal para modificar el libro -->
-    <el-dialog v-model="modificarLibroVisible" title="Crear Nuevo Libro">
+    <el-dialog v-model="modificarLibroVisible" title="Editar Libro">
       <form @submit.prevent="guardarModificacionLibro">
         <div class="grid grid-cols-2 gap-4">
           <div>
@@ -210,7 +210,7 @@
               type="submit"
               class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
             >
-              Editar Libro
+              Guardar Cambios
             </button>
           </div>
         </div>

@@ -9,9 +9,43 @@
       >
         Crear Préstamo
       </button>
-      <!-- Filtro y Buscador -->
+
       <div class="flex items-center">
-        <!-- ... (código del filtro y buscador similar a LibrosList) -->
+        <div class="flex items-center">
+          <label for="busqueda" class="text-sm font-bold mr-2">Buscar:</label>
+          <input
+            v-model="busquedaPorLibro"
+            type="text"
+            id="busqueda"
+            placeholder="Buscar por titulo del libro"
+            class="p-2 border-2 border-slate-300 rounded-md bg-gray-50 h-10 mr-2"
+          />
+        </div>
+
+        <div class="flex items-center">
+          <label for="fechaInicio" class="text-sm font-bold mr-2"
+            >Rango de Fecha:</label
+          >
+          <input
+            v-model="fechaInicio"
+            type="date"
+            id="fechaInicio"
+            class="p-2 border-2 border-slate-300 rounded-md bg-gray-50 h-10 mr-2"
+          />
+          <label for="fechaFin" class="text-sm font-bold mr-2"> a </label>
+          <input
+            v-model="fechaFin"
+            type="date"
+            id="fechaFin"
+            class="p-2 border-2 border-slate-300 rounded-md bg-gray-50 h-10"
+          />
+          <button
+            @click="limpiarFechas"
+            class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-30 h-10 text-sm"
+          >
+            Limpiar Fechas
+          </button>
+        </div>
       </div>
     </div>
 
@@ -118,6 +152,7 @@
                 </a>
                 <a
                   v-if="prestamo.fdevolucion == null"
+                  @click="abrirModalFinalizar(prestamo.id)"
                   x-data="{ tooltip: 'Finalizar' }"
                   href="#"
                   class="cursor-pointer"
@@ -248,6 +283,18 @@
           />
         </div>
 
+        <div class="mb-4">
+          <label for="fechaDevolucion" class="block text-sm font-bold mb-1">
+            Fecha Devolución:
+          </label>
+          <input
+            v-model="formattedDevolucion"
+            class="border-2 border-gray-300 rounded-md p-2 w-72 focus:outline-none focus:border-blue-500"
+            type="date"
+            placeholder="Seleccione una Fecha"
+          />
+        </div>
+
         <!-- Select para agregar libros -->
         <div class="mb-4">
           <label class="block text-sm font-bold mb-3">Agregar Libro:</label>
@@ -306,6 +353,23 @@
       </form>
     </el-dialog>
 
+    <el-dialog v-model="modalFinalizarVisible" title="Finalizar Préstamo" :z-index="1001">
+      <div class="mb-4">
+        <label for="fechaDevolucion" class="block text-sm font-bold mb-1">
+          Fecha Devolución:
+        </label>
+        <input
+          v-model="formattedDevolucion"
+          class="border-2 border-gray-300 rounded-md p-2 w-72 focus:outline-none focus:border-blue-500"
+          type="date"
+          placeholder="Seleccione una Fecha"
+        />
+      </div>
+      <el-button type="primary" @click="guardarFechaDevolucion"
+        >Finalizar Prestamo</el-button
+      >
+    </el-dialog>
+
     <!--  -->
   </div>
 </template>
@@ -316,6 +380,7 @@ import env from "../../env";
 import { configurarTokenAutorizacion } from "../utils/token";
 import LibrosAsociados from "./LibrosAsociados.vue";
 import Swal from "sweetalert2";
+import { format } from "date-fns";
 
 export default {
   data() {
@@ -340,6 +405,12 @@ export default {
       selectedBooksFilter: "",
       availableBooksFilter: "",
       formattedDate: "",
+      formattedDevolucion: "",
+      busquedaPorLibro: "",
+      campoFiltrado: "titulo", // Valor predeterminado, puedes cambiarlo según tus necesidades
+      fechaInicio: "",
+      fechaFin: "",
+      modalFinalizarVisible: false,
     };
   },
   components: {
@@ -525,6 +596,13 @@ export default {
           this.prestamoSeleccionado.fprestamo.split("-");
         this.formattedDate = `${year}-${month}-${day}`;
       }
+      if (this.prestamoSeleccionado.fdevolucion) {
+        const [day, month, year] =
+          this.prestamoSeleccionado.fdevolucion.split("-");
+        this.formattedDevolucion = `${year}-${month}-${day}`;
+      }
+
+      this.formattedDevolucion = null;
     },
     async guardarModificacionPrestamo() {
       try {
@@ -544,6 +622,14 @@ export default {
           .reverse()
           .join("-");
 
+        if (this.formattedDevolucion) {
+          this.prestamoSeleccionado.fdevolucion = this.formattedDevolucion
+            .split("-")
+            .reverse()
+            .join("-");
+        }
+
+        console.log(this.prestamoSeleccionado);
         const response = await axios.put(
           `${env.API_ENDPOINT}/prestamos/${this.prestamoSeleccionado.id}`,
           this.prestamoSeleccionado,
@@ -576,6 +662,113 @@ export default {
         });
       }
     },
+    async buscarPrestamos() {
+      const config = configurarTokenAutorizacion();
+      if (!config) {
+        return;
+      }
+
+      const params = {};
+      if (this.fechaInicio !== "") {
+        params.fechaInicio = format(new Date(this.fechaInicio), "dd-MM-yyyy");
+      }
+      if (this.fechaFin !== "") {
+        params.fechaFin = format(new Date(this.fechaFin), "dd-MM-yyyy");
+      }
+
+      try {
+        const response = await axios.get(`${env.API_ENDPOINT}/prestamos`, {
+          config,
+          params,
+        });
+
+        let prestamosFiltrados = response.data;
+
+        if (this.busquedaPorLibro) {
+          prestamosFiltrados = prestamosFiltrados.filter((prestamo) =>
+            prestamo.libros.some((libro) =>
+              libro.titulo
+                .toLowerCase()
+                .includes(this.busquedaPorLibro.toLowerCase())
+            )
+          );
+        }
+
+        this.prestamos = prestamosFiltrados;
+      } catch (error) {
+        console.error("Error al cargar prestamos", error);
+      }
+    },
+    limpiarFechas() {
+      this.fechaInicio = "";
+      this.fechaFin = "";
+      this.buscarPrestamos();
+    },
+    abrirModalFinalizar(prestamoId) {
+      const prestamo = this.prestamos.find((p) => p.id === prestamoId);
+
+      if (prestamo) {
+        this.prestamoSeleccionado = { ...prestamo };
+        console.log(this.prestamoSeleccionado);
+
+        this.modalFinalizarVisible = true;
+
+        if (this.prestamoSeleccionado.fdevolucion) {
+          const [day, month, year] =
+            this.prestamoSeleccionado.fdevolucion.split("-");
+          this.formattedDevolucion = `${year}-${month}-${day}`;
+        }
+      }
+    },
+    cerrarModalFinalizar() {
+      // Lógica para cerrar el modal
+      this.modalFinalizarVisible = false;
+    },
+    async guardarFechaDevolucion() {
+      const config = configurarTokenAutorizacion();
+      if (!config) {
+        return;
+      }
+      try {
+        const fdevolucion = this.formattedDevolucion
+          .split("-")
+          .reverse()
+          .join("-");
+
+        // Realiza la solicitud HTTP para finalizar el préstamo
+        const response = await axios.put(
+          `${env.API_ENDPOINT}/prestamos/devolucion/${this.prestamoSeleccionado.id}`,
+          { fdevolucion },
+          config
+        );
+
+        this.formattedDevolucion = ""
+        this.cargarPrestamos();
+        
+
+        await Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Prestamo finalizado correctamente",
+        });
+
+        this.modalFinalizarVisible = false;
+      } catch (error) {
+        console.error("Error al finalizar el préstamo", error);
+
+        await Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un error al finalizar el préstamo",
+        });
+      }
+    },
+  },
+  watch: {
+    busquedaPorLibro: "buscarPrestamos",
+    campoFiltrado: "buscarPrestamos",
+    fechaInicio: "buscarPrestamos",
+    fechaFin: "buscarPrestamos",
   },
   mounted() {
     this.cargarPrestamos();
