@@ -9,7 +9,6 @@ import 'element-plus/dist/index.css'
 //PrimeVue
 import PrimeVue from 'primevue/config';
 import 'primevue/resources/themes/lara-light-green/theme.css'
-//Vue datePicker
 
 const app = createApp(App)
 
