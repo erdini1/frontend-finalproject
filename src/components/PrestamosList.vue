@@ -144,46 +144,86 @@
       </table>
     </div>
 
-    <!-- MODAL CREAR-->
-    <el-dialog v-model="crearPrestamoVisible" title="Crear Nuevo Préstamo">
+    <!-- MODAL CREAR -->
+    <el-dialog
+      v-model="crearPrestamoVisible"
+      title="Crear Nuevo Préstamo"
+      :z-index="1001"
+    >
       <form @submit.prevent="crearPrestamo">
-        <div>
-          <div>
-            <div class="mb-4">
-              <label for="fechaPrestamo" class="block text-sm font-bold mb-1"
-                >Fecha Préstamo:</label
-              >
-              <el-date-picker
-                v-model="nuevoPrestamo.fprestamo"
-                type="date"
-                placeholder="Seleccione una Fecha"
-                :size="large"
-                format="DD/MM/YYYY"
-                :value-format="'DD-MM-YYYY'"
-                id="fechaDevolucion"
-                :required="true"
-                class="w-full border-2 border-slate-300 rounded-md bg-gray-50"
-              />
-            </div>
-          </div>
-
-          <el-transfer
-            v-model="nuevoPrestamo.libros"
-            filterable
-            :filter-method="filterMethod"
-            filter-placeholder="Titulo Libro"
-            :data="librosDisponibles"
-            :right-default-checked="[1]"
-            :titles="['Disponibles', 'Seleccionados']"
+        <!-- Selector de fecha -->
+        <div class="mb-4">
+          <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
+            Fecha Préstamo:
+          </label>
+          <el-date-picker
+            v-model="nuevoPrestamo.fprestamo"
+            type="date"
+            placeholder="Seleccione una Fecha"
+            :size="large"
+            format="DD/MM/YYYY"
+            :value-format="'DD-MM-YYYY'"
+            id="fechaDevolucion"
+            :required="true"
+            class="w-full border-2 border-slate-300 rounded-md bg-gray-50"
           />
-          <div class="col-span-2">
-            <button
-              type="submit"
-              class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
+        </div>
+
+        <!-- Select para agregar libros -->
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-3">Agregar Libro:</label>
+          <el-select
+            v-model="selectedBook"
+            placeholder="Buscar libro"
+            filterable
+          >
+            <el-option
+              v-for="libro in librosDisponibles"
+              :key="libro.id"
+              :label="libro.titulo"
+              :value="libro.id"
+            />
+          </el-select>
+          <el-button @click="agregarLibroSeleccionado">Agregar</el-button>
+        </div>
+
+        <!-- Listado de Libros Seleccionados -->
+        <div class="mb-4">
+          <label class="block text-sm font-bold mb-1"
+            >Libros Seleccionados:</label
+          >
+          <ul class="flex flex-wrap gap-2 justify-center text-center">
+            <li
+              v-for="libro in librosSeleccionados"
+              :key="libro.id"
+              class="border border-gray-300 rounded-md p-2 flex items-center"
             >
-              Crear Préstamo
-            </button>
-          </div>
+              <span class="mr-2">{{ libro.titulo }}</span>
+              <button @click="eliminarLibroSeleccionado(libro)">
+                <svg
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  class="w-4 h-4"
+                >
+                  <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Botón para guardar cambios -->
+        <div class="col-span-2">
+          <button
+            type="submit"
+            class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-72"
+          >
+            Crear Préstamo
+          </button>
         </div>
       </form>
     </el-dialog>
@@ -225,9 +265,7 @@
           </el-select>
           <el-button @click="agregarLibroSeleccionado">Agregar</el-button>
         </div>
-        <!-- Revisar que cuando modifico un prestamo se guarda con los valores que tenia antes -->
-        <!-- Modificar el editar prestamo para que pueda seleccionar libros que estan en el prestamo actualmente -->
-        <!-- Listado de Libros Selecionados -->
+
         <div class="mb-4">
           <label class="block text-sm font-bold mb-1"
             >Libros Seleccionados:</label
@@ -366,23 +404,50 @@ export default {
       }
     },
     async crearPrestamo() {
-      const librosFormateados = this.nuevoPrestamo.libros.map((id) => ({ id }));
-      this.nuevoPrestamo.libros = librosFormateados;
+      // Formatear los libros seleccionados
+      const librosFormateados = this.librosSeleccionados.map((libro) => ({
+        id: libro.id,
+      }));
+
+      // Crear objeto de préstamo para enviar al servidor
+      const nuevoPrestamo = {
+        fprestamo: this.nuevoPrestamo.fprestamo,
+        libros: librosFormateados,
+      };
+
+      // Configurar token de autorización
       const config = configurarTokenAutorizacion();
       if (!config) {
         return;
       }
+
       try {
+        // Realizar la solicitud para crear el préstamo
         const response = await axios.post(
           `${env.API_ENDPOINT}/prestamos`,
-          this.nuevoPrestamo,
+          nuevoPrestamo,
           config
         );
 
+        // Cerrar el modal después de crear el préstamo
         this.crearPrestamoVisible = false;
+        this.librosSeleccionados = [];
+
+        await Swal.fire({
+          icon: "success",
+          title: "Éxito",
+          text: "Préstamo creado correctamente",
+        });
+
+        // Recargar la lista de préstamos
         this.cargarPrestamos();
       } catch (error) {
         console.error("Error al crear préstamo", error);
+        await Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Hubo un error al crear el préstamo",
+        });
       }
     },
     filterMethod(query, option) {
@@ -493,6 +558,7 @@ export default {
         }
 
         this.editarPrestamoVisible = false;
+        this.librosSeleccionados = [];
         this.cargarPrestamos();
 
         await Swal.fire({
