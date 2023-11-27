@@ -14,8 +14,7 @@ const routes = [
   },
   { path: '/libros', component: LibrosList, meta: { requiresAuth: true } },
   {
-    path: '/prestamos',
-    component: PrestamosList,
+    path: '/prestamos', component: PrestamosList, meta: { requiresAuth: true }
   },
   {
     path: '/login',
@@ -27,7 +26,6 @@ const routes = [
   },
 ];
 
-// Crea una instancia de VueRouter y pasa las rutas configuradas
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
@@ -36,16 +34,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   console.log('isAuthenticated:', store.getters.isAuthenticated);
   if (to.matched.some(record => record.meta.requiresAuth)) {
-    // Esta ruta requiere autenticación
     if (!store.getters.isAuthenticated) {
-      // No está autenticado, redirigir al inicio de sesión
       next('/login');
     } else {
-      // Está autenticado, continuar
       next();
     }
   } else {
-    // Esta ruta no requiere autenticación, continuar
     next();
   }
 });

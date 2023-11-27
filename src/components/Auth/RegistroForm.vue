@@ -88,7 +88,6 @@ const register = async () => {
       contrasenia: contrasenia.value,
     });
 
-    // Manejar la respuesta del servidor
     console.log(response.data);
     await Swal.fire({
       icon: "success",
@@ -96,7 +95,6 @@ const register = async () => {
       text: "Registrado correctamente",
     });
 
-    // Redirigir a la página de inicio de sesión después del registro exitoso
     router.push("/login");
   } catch (error) {
     if (error.response && error.response.status === 401) {
@@ -112,7 +110,6 @@ const register = async () => {
         text: "Error al crear el usuario",
       });
     }
-    // Manejar el error (puedes mostrar un mensaje de error al usuario, etc.)
     return;
   }
 };

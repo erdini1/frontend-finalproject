@@ -1,7 +1,6 @@
 <template>
   <div class="m-5">
     <h1 class="font-bold text-4xl mr-4 m-5">Listado de Préstamos</h1>
-    <!-- Agrega la sección para filtrar y buscar, similar a LibrosList -->
     <div class="flex items-center justify-between mb-5">
       <button
         @click="abrirModalCrearPrestamo"
@@ -186,7 +185,6 @@
       :z-index="1001"
     >
       <form @submit.prevent="crearPrestamo">
-        <!-- Selector de fecha -->
         <div class="mb-4">
           <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
             Fecha Préstamo:
@@ -204,7 +202,6 @@
           />
         </div>
 
-        <!-- Select para agregar libros -->
         <div class="mb-4">
           <label class="block text-sm font-bold mb-3">Agregar Libro:</label>
           <el-select
@@ -222,7 +219,6 @@
           <el-button @click="agregarLibroSeleccionado">Agregar</el-button>
         </div>
 
-        <!-- Listado de Libros Seleccionados -->
         <div class="mb-4">
           <label class="block text-sm font-bold mb-1"
             >Libros Seleccionados:</label
@@ -251,7 +247,6 @@
           </ul>
         </div>
 
-        <!-- Botón para guardar cambios -->
         <div class="col-span-2">
           <button
             type="submit"
@@ -270,7 +265,6 @@
       :z-index="1001"
     >
       <form @submit.prevent="guardarModificacionPrestamo">
-        <!-- Selector de fecha -->
         <div class="mb-4">
           <label for="fechaPrestamo" class="block text-sm font-bold mb-1">
             Fecha Préstamo:
@@ -295,7 +289,6 @@
           />
         </div>
 
-        <!-- Select para agregar libros -->
         <div class="mb-4">
           <label class="block text-sm font-bold mb-3">Agregar Libro:</label>
           <el-select
@@ -341,7 +334,6 @@
           </ul>
         </div>
 
-        <!-- Botón para guardar cambios -->
         <div class="col-span-2">
           <button
             type="submit"
@@ -353,6 +345,7 @@
       </form>
     </el-dialog>
 
+    <!-- MODAL FINALIZAR -->
     <el-dialog v-model="modalFinalizarVisible" title="Finalizar Préstamo" :z-index="1001">
       <div class="mb-4">
         <label for="fechaDevolucion" class="block text-sm font-bold mb-1">
@@ -370,7 +363,6 @@
       >
     </el-dialog>
 
-    <!--  -->
   </div>
 </template>
 
@@ -407,7 +399,7 @@ export default {
       formattedDate: "",
       formattedDevolucion: "",
       busquedaPorLibro: "",
-      campoFiltrado: "titulo", // Valor predeterminado, puedes cambiarlo según tus necesidades
+      campoFiltrado: "titulo",
       fechaInicio: "",
       fechaFin: "",
       modalFinalizarVisible: false,
@@ -475,32 +467,27 @@ export default {
       }
     },
     async crearPrestamo() {
-      // Formatear los libros seleccionados
       const librosFormateados = this.librosSeleccionados.map((libro) => ({
         id: libro.id,
       }));
 
-      // Crear objeto de préstamo para enviar al servidor
       const nuevoPrestamo = {
         fprestamo: this.nuevoPrestamo.fprestamo,
         libros: librosFormateados,
       };
 
-      // Configurar token de autorización
       const config = configurarTokenAutorizacion();
       if (!config) {
         return;
       }
 
       try {
-        // Realizar la solicitud para crear el préstamo
         const response = await axios.post(
           `${env.API_ENDPOINT}/prestamos`,
           nuevoPrestamo,
           config
         );
 
-        // Cerrar el modal después de crear el préstamo
         this.crearPrestamoVisible = false;
         this.librosSeleccionados = [];
 
@@ -510,7 +497,6 @@ export default {
           text: "Préstamo creado correctamente",
         });
 
-        // Recargar la lista de préstamos
         this.cargarPrestamos();
       } catch (error) {
         console.error("Error al crear préstamo", error);
@@ -721,7 +707,6 @@ export default {
       }
     },
     cerrarModalFinalizar() {
-      // Lógica para cerrar el modal
       this.modalFinalizarVisible = false;
     },
     async guardarFechaDevolucion() {
@@ -735,7 +720,6 @@ export default {
           .reverse()
           .join("-");
 
-        // Realiza la solicitud HTTP para finalizar el préstamo
         const response = await axios.put(
           `${env.API_ENDPOINT}/prestamos/devolucion/${this.prestamoSeleccionado.id}`,
           { fdevolucion },

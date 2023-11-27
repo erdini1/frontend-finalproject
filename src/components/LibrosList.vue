@@ -2,7 +2,6 @@
   <div class="m-5">
     <h1 class="font-bold text-4xl mr-4 m-5">Listado de Libros</h1>
     <div class="flex items-center justify-between mb-5">
-      <!-- Botón de Crear Libro -->
       <button
         @click="abrirModalCrearLibro"
         class="bg-blue-500 hover:bg-blue-700 transition-all text-white px-4 py-2 rounded-md w-48 h-10"
@@ -74,7 +73,6 @@
             <td class="px-6 py-4">{{ libro.estado }}</td>
             <td class="px-6 py-4">
               <div class="flex justify-start gap-4">
-                <!-- Mostrar el botón de eliminar solo si el libro está disponible -->
                 <a
                   v-if="libro.estado !== 'prestado'"
                   @click="eliminarLibro(libro.id)"
@@ -98,7 +96,6 @@
                     />
                   </svg>
                 </a>
-                <!-- Botón de editar con clase condicional -->
                 <a
                   v-if="libro.estado !== 'prestado'"
                   @click="abrirModalModificarLibro(libro.id)"
@@ -130,8 +127,7 @@
       </table>
     </div>
 
-    <!--  -->
-    <!-- Modal para modificar el libro -->
+    <!-- MODAL MODIFICAR -->
     <el-dialog v-model="modificarLibroVisible" title="Editar Libro">
       <form @submit.prevent="guardarModificacionLibro">
         <div class="grid grid-cols-2 gap-4">
@@ -191,7 +187,6 @@
             </div>
           </div>
 
-          <!-- Sinopsis ocupa dos columnas -->
           <div class="col-span-2 mb-4">
             <label for="sinopsis" class="block text-sm font-bold mb-1"
               >Sinopsis:</label
@@ -217,8 +212,7 @@
       </form>
     </el-dialog>
 
-    <!--  -->
-    <!-- Modal para crear un libro -->
+    <!-- MODAL CREAR -->
     <el-dialog v-model="crearLibroVisible" title="Crear Nuevo Libro">
       <form @submit.prevent="crearLibro">
         <div class="grid grid-cols-2 gap-4">
@@ -278,7 +272,6 @@
             </div>
           </div>
 
-          <!-- Sinopsis ocupa dos columnas -->
           <div class="col-span-2 mb-4">
             <label for="sinopsis" class="block text-sm font-bold mb-1"
               >Sinopsis:</label
@@ -354,19 +347,16 @@ export default {
 
           const index = this.libros.findIndex((libro) => libro.id === libroId);
 
-          // Elimina el libro del array existente
           if (index !== -1) {
             this.libros.splice(index, 1);
           }
         }
 
-        // Encuentra el índice del libro a eliminar
       } catch (error) {
         console.error("Error al eliminar libro", error);
       }
     },
     abrirModalModificarLibro(libroId) {
-      // Verifica si el libroId existe en la lista antes de asignar
       const libro = this.libros.find((libro) => libro.id === libroId);
       if (libro) {
         this.libroSeleccionado = { ...libro };
@@ -374,7 +364,6 @@ export default {
       }
     },
     async guardarModificacionLibro() {
-      // Lógica para guardar la modificación del libro
       try {
         const config = configurarTokenAutorizacion();
 
@@ -389,23 +378,18 @@ export default {
         );
         console.log("Libro modificado con éxito");
 
-        // Actualiza la lista de libros
         const index = this.libros.findIndex(
           (libro) => libro.id === this.libroSeleccionado.id
         );
 
         if (index !== -1) {
-          // Actualiza solo las propiedades necesarias
           Object.assign(this.libros[index], response.data);
         }
 
-        // Cierra el modal
         this.modificarLibroVisible = false;
 
-        // Vuelve a cargar la lista de libros
         this.cargarLibros();
 
-        // Muestra la alerta de éxito
         await Swal.fire({
           icon: "success",
           title: "Éxito",
@@ -414,7 +398,6 @@ export default {
       } catch (error) {
         console.error("Error al modificar libro", error);
 
-        // Muestra la alerta de error
         await Swal.fire({
           icon: "error",
           title: "Error",
@@ -423,7 +406,6 @@ export default {
       }
     },
     abrirModalCrearLibro() {
-      // Inicializa el objeto para un nuevo libro
       this.nuevoLibro = {
         titulo: "",
         autor: "",
@@ -431,7 +413,6 @@ export default {
         num_paginas: null,
         sinopsis: "",
       };
-      // Cambia la variable a modificarLibroVisible a false y crearLibroVisible a true
       this.modificarLibroVisible = false;
       this.crearLibroVisible = true;
     },
@@ -445,14 +426,12 @@ export default {
 
         const response = await axios.post(
           `${env.API_ENDPOINT}/libros`,
-          this.nuevoLibro, // Utiliza nuevoLibro para la creación
+          this.nuevoLibro, 
           config
         );
 
-        // Actualiza la lista de libros con el nuevo libro creado
         this.libros.push(response.data);
 
-        // Limpia el libro seleccionado y cierra el modal
         this.nuevoLibro = {
           titulo: "",
           autor: "",
@@ -462,10 +441,8 @@ export default {
         };
         this.crearLibroVisible = false;
 
-        // Vuelve a cargar la lista de libros
         this.cargarLibros();
 
-        // Muestra la alerta de éxito
         await Swal.fire({
           icon: "success",
           title: "Éxito",
@@ -474,7 +451,6 @@ export default {
       } catch (error) {
         console.error("Error al crear libro", error);
 
-        // Muestra la alerta de error
         await Swal.fire({
           icon: "error",
           title: "Error",
@@ -485,7 +461,6 @@ export default {
     async cargarLibros() {
       const config = configurarTokenAutorizacion();
 
-      // Si no hay configuración (porque no hay token), maneja la lógica correspondiente
       if (!config) {
         return;
       }
@@ -497,11 +472,9 @@ export default {
       }
     },
     filtrarLibros() {
-      // Lógica para filtrar libros según el campo seleccionado
       if (this.busqueda.trim() !== "") {
         const terminoBusqueda = this.busqueda.trim().toLowerCase();
 
-        // Filtrar por el campo seleccionado
         switch (this.campoFiltrado) {
           case "titulo":
             this.libros = this.libros.filter((libro) =>
@@ -527,7 +500,6 @@ export default {
             break;
         }
       } else {
-        // Si el término de búsqueda está vacío, cargamos todos los libros
         this.cargarLibros();
       }
     },
@@ -537,13 +509,11 @@ export default {
     },
   },
   watch: {
-    // Observador para el cambio en el término de búsqueda
     busqueda: function () {
       this.filtrarLibros();
     },
   },
   mounted() {
-    // Carga los libros al montar el componente
     this.cargarLibros();
   },
 };

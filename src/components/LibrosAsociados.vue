@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- <h3 class="font-bold text-lg mb-2">Libros Asociados</h3> -->
     <table
       class="w-full border-collapse bg-white text-left text-sm text-gray-500"
     >

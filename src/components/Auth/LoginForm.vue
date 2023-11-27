@@ -65,7 +65,6 @@ export default {
           }
         );
 
-        // Almacena el token en el store
         this.$store.commit("setToken", response.data.mensaje);
 
         await Swal.fire({
@@ -74,7 +73,6 @@ export default {
           text: "Inicio sesión correctamente",
         });
 
-        // Redirige a la página de usuarios (o libros) después del inicio de sesión exitoso
         this.$router.push("/usuarios");
       } catch (error) {
         if (error.response && error.response.status === 401) {
@@ -90,7 +88,6 @@ export default {
             text: "Error al loguearse",
           });
         }
-        // Manejar el error (puedes mostrar un mensaje de error al usuario, etc.)
       }
     },
   },

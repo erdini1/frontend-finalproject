@@ -83,9 +83,7 @@
       </table>
     </div>
     <el-dialog v-model="modificarUsuarioVisible" title="Modificar Usuario">
-      <!-- <h2 class="text-xl font-medium mb-2">Modificar Usuario</h2> -->
       <form @submit.prevent="guardarModificacion">
-        <!-- Campos del formulario -->
         <div class="flex mb-4" v-if="usuarioSeleccionado">
           <div class="w-1/2 pr-2">
             <label for="nombre" class="block text-sm font-bold mb-1"
@@ -170,7 +168,6 @@ export default {
 
   methods: {
     async eliminarUsuario(usuarioId) {
-      // Llama a la API para eliminar un usuario con Axios
       try {
         const confirmacion = await Swal.fire({
           title: "¿Estás seguro?",
@@ -191,12 +188,10 @@ export default {
             text: "Usuario eliminado correctamente",
           });
 
-          // Encuentra el índice del usuario a eliminar
           const index = this.usuarios.findIndex(
             (usuario) => usuario.id === usuarioId
           );
 
-          // Elimina el usuario del array existente
           if (index !== -1) {
             this.usuarios.splice(index, 1);
           }
@@ -206,17 +201,14 @@ export default {
       }
     },
     modificarUsuario(usuarioId) {
-      // Encuentra el usuario seleccionado
       this.usuarioSeleccionado = this.usuarios.find(
         (usuario) => usuario.id === usuarioId
       );
 
-      // Abre el modal
       this.modificarUsuarioVisible = true;
     },
     async guardarModificacion() {
       try {
-        // Verifica si el nuevo correo ya existe en la lista
         const correoExistente = this.usuarios.some(
           (usuario) =>
             usuario.email === this.usuarioSeleccionado.email &&
@@ -224,7 +216,6 @@ export default {
         );
 
         if (correoExistente) {
-          // Muestra la alerta utilizando SweetAlert2
           await Swal.fire({
             icon: "error",
             title: "Error",
@@ -240,27 +231,22 @@ export default {
 
         console.log("Usuario modificado con éxito");
 
-        // Actualiza la lista de usuarios
         const index = this.usuarios.findIndex(
           (usuario) => usuario.id === this.usuarioSeleccionado.id
         );
 
         if (index !== -1) {
-          // Actualiza solo las propiedades necesarias
           Object.assign(this.usuarios[index], response.data);
         }
 
-        // Limpia el usuario seleccionado y el formulario
         this.usuarioSeleccionado = null;
 
-        // Oculta el modal
         this.modificarUsuarioVisible = false;
       } catch (error) {
         console.error("Error al modificar usuario", error);
       }
     },
     async cargarUsuarios() {
-      // Llama a la API para cargar los usuarios con Axios
       try {
         const response = await axios.get(`${env.API_ENDPOINT}/usuarios`);
         this.usuarios = response.data;
@@ -270,7 +256,6 @@ export default {
     },
   },
   mounted() {
-    // Carga los usuarios al montar el componente
     this.cargarUsuarios();
   },
 };
